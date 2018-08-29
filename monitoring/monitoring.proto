@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+option go_package = "monitoring";
+
+import "google/api/annotations.proto";
+
+package monitoring;
+
+message InfosServer {
+  InfosMemory memory  = 1;
+  InfosCpu cpu = 2;
+}
+
+message InfosCpu {
+  repeated double per_cpu = 1;
+  double total_cpu = 2;
+}
+
+message Partitions {
+  string device = 1;
+  string mounted = 2;
+  string fstype = 3;
+  uint64 size = 4;
+  uint64 free = 5;
+  uint64 used = 6;
+  double used_percent = 7;
+  uint64 inodes_total = 8;
+  uint64 inodes_used = 9;
+  uint64 inodes_free = 10;
+  double inodes_used_percent = 11;
+}
+
+message InfosConsumeDisk {
+  string device = 1;
+  double reads_complete = 2;
+  uint64 reads_merged = 3;
+  uint64 sectors_read = 4;
+  uint64 time_spent_read = 5;
+  double writes_completed = 6;
+  uint64 writes_merged = 7;
+  uint64 sectors_write = 8;
+  uint64 time_spent_write = 9;
+  uint64 io = 10;
+}
+
+message InfosMemory {
+  uint64 total = 1;
+  uint64 free = 2;
+  uint64 available = 3;
+  uint64 used = 4;
+  uint64 cached = 5;
+  float used_percent = 6;
+}
+
+message InfosConsume {
+  string interface = 1;
+  double sent = 2;
+  double recv = 3;
+  uint64 packets_sent = 4;
+  uint64 packets_recv = 5;
+  uint64 error_recv = 6;
+  uint64 error_sent = 7;
+  uint64 drop_recv = 8;
+  uint64 drop_sent = 9;
+}
+
+message ShowConsume {
+  repeated InfosConsume consume = 1;
+}
+
+message ShowConsumeDisk {
+  repeated InfosConsumeDisk disk_io = 1;
+}
+
+message Empty {}
+
+service MonitoringService {
+  //rpc AllInfos(Empty) returns (stream InfosServer) {}
+  rpc CpuInfos(Empty) returns (stream InfosCpu) {
+    option (google.api.http) = {
+      get: "/v1/infos/consume_cpus"
+    };
+  }
+
+  rpc ConsumeInterfaces(Empty) returns (stream ShowConsume) {
+    option (google.api.http) = {
+      get: "/v1/infos/consume_interfaces"
+    };
+  }
+
+  rpc ConsumeDisk(Empty) returns (stream ShowConsumeDisk) {
+    option (google.api.http) = {
+      get: "/v1/infos/consume_disk"
+    };
+  }
+}
